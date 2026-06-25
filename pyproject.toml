@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "modterm"
+version = "1.1.0"
+description = "Linux-first serial terminal and Modbus test tool"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [
+    { name = "ModTerm Contributors" },
+]
+dependencies = [
+    "PySide6>=6.7,<7",
+    "pyserial>=3.5,<4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pyinstaller>=6.16,<7",
+    "pytest>=8,<9",
+    "pytest-qt>=4.4,<5",
+    "ruff>=0.6",
+]
+
+[project.scripts]
+modterm = "modterm.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

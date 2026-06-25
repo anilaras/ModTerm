@@ -1,0 +1,63 @@
+name: Build AppImage
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  appimage:
+    name: AppImage x86_64
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install build dependencies
+        run: python -m pip install -e ".[dev]"
+
+      - name: Run tests
+        run: QT_QPA_PLATFORM=offscreen python -m pytest
+
+      - name: Build AppImage
+        env:
+          PYTHON: python
+        run: ./scripts/build_appimage.sh
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ModTerm-AppImage-x86_64
+          path: |
+            dist/appimage/*.AppImage
+            dist/appimage/*.sha256
+          if-no-files-found: error
+
+      - name: Publish tagged release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" \
+              dist/appimage/*.AppImage \
+              dist/appimage/*.sha256 \
+              --clobber
+          else
+            gh release create "${GITHUB_REF_NAME}" \
+              dist/appimage/*.AppImage \
+              dist/appimage/*.sha256 \
+              --generate-notes \
+              --verify-tag
+          fi

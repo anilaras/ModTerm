@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=ModTerm
+GenericName=Serial and Modbus Terminal
+Comment=Linux serial terminal and Modbus test tool
+Exec=modterm
+Icon=modterm
+Terminal=false
+Categories=Development;Electronics;
+Keywords=serial;terminal;modbus;rs485;rtu;ascii;
+StartupNotify=true

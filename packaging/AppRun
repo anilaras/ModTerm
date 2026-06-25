@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+
+APPDIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+
+export PATH="$APPDIR/usr/bin${PATH:+:$PATH}"
+export XDG_DATA_DIRS="$APPDIR/usr/share${XDG_DATA_DIRS:+:$XDG_DATA_DIRS}"
+
+exec "$APPDIR/usr/bin/modterm" "$@"
+
