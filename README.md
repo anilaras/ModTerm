@@ -1,8 +1,9 @@
 # ModTerm
 
-ModTerm is a Linux-first industrial serial terminal and Modbus RTU/ASCII
-workbench. It is designed as a free, modern Docklight-style tool for
-commissioning, diagnostics, RS-485 device testing and protocol development.
+ModTerm is a cross-platform industrial serial terminal and Modbus RTU/ASCII
+workbench for Linux and Windows. It is designed as a free, modern
+Docklight-style tool for commissioning, diagnostics, RS-485 device testing
+and protocol development.
 
 The default language is English. The complete interface can be switched to
 Turkish at runtime from **View → Language**.
@@ -11,7 +12,9 @@ Turkish at runtime from **View → Language**.
 
 ### Serial communication
 
-- Linux serial device discovery (`ttyUSB`, `ttyACM`, `ttyS` and other pySerial ports)
+- Linux and Windows serial device discovery
+- Linux device support such as `ttyUSB`, `ttyACM` and `ttyS`
+- Windows COM port support such as `COM1`, `COM3` and USB serial adapters
 - Port description, manufacturer and VID/PID information
 - Standard and custom baud rates
 - 5, 6, 7 and 8 data bits
@@ -94,7 +97,7 @@ Turkish at runtime from **View → Language**.
 
 ## Requirements
 
-- Linux
+- Linux or Windows 10/11
 - Python 3.11 or newer for source development
 - Access permission for the target serial device
 
@@ -107,6 +110,8 @@ sudo usermod -aG dialout "$USER"
 Sign out and back in after changing group membership.
 
 ## Development installation
+
+### Linux
 
 ```bash
 python3 -m venv .venv
@@ -127,6 +132,18 @@ or:
 python -m modterm
 ```
 
+### Windows
+
+Open PowerShell or Command Prompt in the project directory:
+
+```powershell
+py -3.11 -m venv .venv
+.venv\Scripts\activate
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+python -m modterm
+```
+
 ## Testing and code quality
 
 ```bash
@@ -138,7 +155,67 @@ The test suite covers checksum reference vectors, payload parsers, Modbus RTU
 and ASCII frame generation/validation, project persistence, serial service
 lifetime and a real Linux pseudo-terminal read/write cycle.
 
-## AppImage
+## Windows EXE
+
+PyInstaller output is operating-system-specific. A Windows `.exe` must be
+built on Windows; it cannot be cross-compiled by PyInstaller from Linux.
+
+### Build directly on Windows
+
+Install the development dependencies as shown above, then run:
+
+```bat
+scripts\build_windows.bat
+```
+
+PowerShell users may call the underlying script directly:
+
+```powershell
+.\scripts\build_windows.ps1
+```
+
+Output:
+
+```text
+dist\windows\ModTerm-1.2.0-windows-x86_64.exe
+dist\windows\ModTerm-1.2.0-windows-x86_64.exe.sha256
+```
+
+The EXE is a self-contained, windowed, single-file application:
+
+- The target computer does not need Python or PySide6.
+- The application can be started by double-clicking the EXE.
+- No command prompt window is opened.
+- Administrator rights are not requested.
+- The first launch may take slightly longer because the single-file bundle
+  extracts its runtime into a temporary directory.
+
+### Build with GitHub Actions
+
+Push the project to GitHub, then open:
+
+```text
+Actions → Build Windows EXE → Run workflow
+```
+
+Download the `ModTerm-Windows-x86_64` artifact after the workflow completes.
+The workflow uses Windows Server 2022 and Python 3.11, runs the tests, creates
+the EXE and generates its SHA-256 file.
+
+When a version tag such as `v1.2.0` is pushed, both Windows EXE and Linux
+AppImage workflows attach their output to the same GitHub Release:
+
+```bash
+git tag v1.2.0
+git push origin v1.2.0
+```
+
+The generated EXE is currently unsigned. Windows SmartScreen may therefore
+show an “unknown publisher” warning on downloaded copies. Removing that
+warning requires a trusted Windows code-signing certificate; code signing is
+intentionally not configured in the repository.
+
+## Linux AppImage
 
 Build a local AppImage:
 
@@ -149,8 +226,8 @@ make appimage
 Output:
 
 ```text
-dist/appimage/ModTerm-1.1.0-x86_64.AppImage
-dist/appimage/ModTerm-1.1.0-x86_64.AppImage.sha256
+dist/appimage/ModTerm-1.2.0-x86_64.AppImage
+dist/appimage/ModTerm-1.2.0-x86_64.AppImage.sha256
 ```
 
 Run it:
@@ -174,14 +251,14 @@ produces a SHA-256 file.
 the glibc baseline of the build environment. For wider compatibility, use the
 included GitHub Actions workflow, which builds on Ubuntu 22.04.
 
-## GitHub release build
+## Linux GitHub build
 
 `.github/workflows/appimage.yml` runs tests and creates an AppImage artifact.
 Pushing a version tag creates or updates a GitHub Release:
 
 ```bash
-git tag v1.1.0
-git push origin v1.1.0
+git tag v1.2.0
+git push origin v1.2.0
 ```
 
 ## Project structure

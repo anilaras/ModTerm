@@ -19,7 +19,7 @@ def create_application(argv: list[str] | None = None) -> QApplication:
     app.setOrganizationName("ModTerm")
     app.setOrganizationDomain("modterm.local")
     app.setStyle("Fusion")
-    QCoreApplication.setApplicationVersion("1.1.0")
+    QCoreApplication.setApplicationVersion("1.2.0")
     return app
 
 

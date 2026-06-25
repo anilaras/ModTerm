@@ -1,4 +1,4 @@
-.PHONY: run test lint appimage clean
+.PHONY: run test lint appimage windows-exe clean
 
 PYTHON ?= .venv/bin/python
 
@@ -15,6 +15,8 @@ lint:
 appimage:
 	./scripts/build_appimage.sh
 
+windows-exe:
+	pwsh -NoProfile -File ./scripts/build_windows.ps1
+
 clean:
 	rm -rf build dist AppDir
-

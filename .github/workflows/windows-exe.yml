@@ -1,0 +1,67 @@
+name: Build Windows EXE
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  windows-exe:
+    name: Windows EXE x86_64
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install build dependencies
+        run: python -m pip install -e ".[dev]"
+
+      - name: Run tests
+        shell: pwsh
+        run: |
+          $env:QT_QPA_PLATFORM = "offscreen"
+          python -m pytest
+
+      - name: Build Windows executable
+        shell: pwsh
+        run: .\scripts\build_windows.ps1 -Python python
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ModTerm-Windows-x86_64
+          path: |
+            dist/windows/*.exe
+            dist/windows/*.sha256
+          if-no-files-found: error
+
+      - name: Publish tagged release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          $files = Get-ChildItem dist/windows -File | ForEach-Object { $_.FullName }
+          gh release view $tag 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag @files --clobber
+          }
+          else {
+            gh release create $tag @files --generate-notes --verify-tag
+            if ($LASTEXITCODE -ne 0) {
+              gh release upload $tag @files --clobber
+            }
+          }
+

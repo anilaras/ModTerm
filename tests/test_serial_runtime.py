@@ -1,14 +1,19 @@
 from __future__ import annotations
 
 import os
-import pty
 import threading
 import time
+
+import pytest
 
 from modterm.core.serial_models import SerialConfig
 from modterm.services.serial_service import SerialService
 
+if os.name != "nt":
+    import pty
 
+
+@pytest.mark.skipif(os.name == "nt", reason="Linux pseudo-terminal test")
 def test_linux_pseudo_terminal_read_and_write() -> None:
     master_fd, slave_fd = pty.openpty()
     slave_name = os.ttyname(slave_fd)
